@@ -1,0 +1,77 @@
+web/templates/index.html
+  s_8f5a88b70ca6ca::t_1847bf7d970528 1-54
+internal/server/decide.go
+  s_8f5a88b70ca6ca::t_b27e21eea638e6 1-40
+internal/server/metrics.go
+  s_8f5a88b70ca6ca::t_332e835dddb491 1-65
+manifests/namespace.yaml
+  s_8f5a88b70ca6ca::t_ba323d9b297fa6 1-6
+manifests/kustomization.yaml
+  s_8f5a88b70ca6ca::t_8ca1ab2914ed04 1-12
+internal/obs/log.go
+  s_8f5a88b70ca6ca::t_8f2dd8f6e756c3 1-33
+internal/server/handlers.go
+  s_8f5a88b70ca6ca::t_53f63b6b1eb866 1-193
+internal/cache/redis_test.go
+  s_8f5a88b70ca6ca::t_a47d5b4bc5443d 1-91
+manifests/weather-app-deployment.yaml
+  s_8f5a88b70ca6ca::t_511ee166598496 1-51
+Makefile
+  s_8f5a88b70ca6ca::t_0298758c24f963 1-98
+README.md
+  s_8f5a88b70ca6ca::t_b4df0716431659 1-80
+internal/server/decide_test.go
+  s_8f5a88b70ca6ca::t_c4ae7470d0c143 1-69
+internal/config/cities.go
+  s_8f5a88b70ca6ca::t_93a72b612f19bd 1-23
+loadgen/loadgen.sh
+  s_8f5a88b70ca6ca::t_96a81eb69548d9 1-51
+internal/weather/client_test.go
+  s_8f5a88b70ca6ca::t_efbfbe37152ab2 1-115
+web/static/app.js
+  s_8f5a88b70ca6ca::t_80a67ff8149bc4 1-51
+manifests/redis-service.yaml
+  s_8f5a88b70ca6ca::t_87c6e5c172c7a4 1-16
+cmd/weather-app/main.go
+  s_8f5a88b70ca6ca::t_a50bcfa5a0242c 1-101
+internal/server/routes.go
+  s_8f5a88b70ca6ca::t_f30bac7bd7b3c4 1-32
+Dockerfile
+  s_8f5a88b70ca6ca::t_7bcafaed985ce1 1-30
+manifests/redis-deployment.yaml
+  s_8f5a88b70ca6ca::t_fb8825857e2101 1-38
+internal/config/config.go
+  s_8f5a88b70ca6ca::t_e28bb8b089f81d 1-102
+internal/weather/client.go
+  s_8f5a88b70ca6ca::t_1fac68b180507f 1-104
+.dockerignore
+  s_8f5a88b70ca6ca::t_869bc73944d00b 1-15
+internal/weather/snapshot.go
+  s_8f5a88b70ca6ca::t_c0a169576574d2 1-19
+web/web.go
+  s_8f5a88b70ca6ca::t_1af6ee480fddaf 1-7
+web/static/styles.css
+  s_8f5a88b70ca6ca::t_1688df4c9342d2 1-141
+manifests/configmap.yaml
+  s_8f5a88b70ca6ca::t_d8fd30386c9160 1-14
+internal/cache/redis.go
+  s_8f5a88b70ca6ca::t_8d9c7b395f3a4e 1-69
+manifests/weather-app-service.yaml
+  s_8f5a88b70ca6ca::t_969f214f94625b 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "6bbd588113cfb2e4983086c1fcac8ce86ee31e4c",
+  "prompts": {},
+  "sessions": {
+    "s_8f5a88b70ca6ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a94c542-b51f-4121-92ee-c4940986b87f",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "luisruiz_meli <luismiguel.ruiz@mercadolibre.com.co>"
+    }
+  }
+}
