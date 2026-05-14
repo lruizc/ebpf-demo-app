@@ -1,0 +1,121 @@
+---
+# ConfigMap carrying the loadgen script — mounted into the Job pod
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadgen-script
+  namespace: weather-demo
+  labels:
+    app.kubernetes.io/part-of: weather-demo
+data:
+  loadgen.sh: |
+    #!/bin/sh
+    # In-cluster load generator (curlimages/curl variant — POSIX sh, no bc)
+    set -eu
+
+    BASE_URL="${BASE_URL:-http://weather-app.weather-demo.svc.cluster.local}"
+    RATE="${RATE:-2}"
+    DURATION="${DURATION:-60}"
+    BYPASS_RATIO="${BYPASS_RATIO:-10}"
+
+    ALL_CITIES="bogota lima santiago buenos-aires caracas quito montevideo sao-paulo"
+    BYPASS_CITY="sao-paulo"
+
+    # Integer milliseconds sleep via /usr/bin/sleep fractional string
+    # curlimages/curl has busybox sleep which supports decimals
+    SLEEP_S="0.5"
+
+    cnt_cache=0; cnt_origin=0; cnt_bypass=0; cnt_error=0; total=0
+    start=$(date +%s)
+    last_summary=$(date +%s)
+
+    echo "[loadgen] target=${BASE_URL} rate~=${RATE}rps duration=${DURATION}s bypass=${BYPASS_RATIO}%"
+
+    while true; do
+      now=$(date +%s)
+      elapsed=$(( now - start ))
+      if [ "$DURATION" -gt 0 ] && [ "$elapsed" -ge "$DURATION" ]; then
+        break
+      fi
+
+      rand=$(( RANDOM % 100 ))
+      if [ "$rand" -lt "$BYPASS_RATIO" ]; then
+        city="$BYPASS_CITY"
+      else
+        # Pick pseudo-random city from space-separated list
+        set -- $ALL_CITIES
+        idx=$(( (RANDOM % $#) + 1 ))
+        eval "city=\${$idx}"
+      fi
+
+      source=$(curl -sf -o /dev/null \
+        -w "%header{X-Source}" \
+        --max-time 5 \
+        "${BASE_URL}/api/weather?city=${city}" 2>/dev/null || echo "error")
+
+      case "$source" in
+        cache)  cnt_cache=$(( cnt_cache + 1 ))  ;;
+        origin) cnt_origin=$(( cnt_origin + 1 )) ;;
+        bypass) cnt_bypass=$(( cnt_bypass + 1 )) ;;
+        *)      cnt_error=$(( cnt_error + 1 )); source="error" ;;
+      esac
+      total=$(( total + 1 ))
+      echo "[loadgen] city=${city} source=${source}"
+
+      now=$(date +%s)
+      if [ $(( now - last_summary )) -ge 10 ]; then
+        echo "── summary elapsed=$(( now - start ))s total=${total} cache=${cnt_cache} origin=${cnt_origin} bypass=${cnt_bypass} error=${cnt_error}"
+        last_summary=$now
+      fi
+
+      sleep "$SLEEP_S"
+    done
+
+    echo "── DONE elapsed=${DURATION}s total=${total} cache=${cnt_cache} origin=${cnt_origin} bypass=${cnt_bypass} error=${cnt_error}"
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loadgen
+  namespace: weather-demo
+  labels:
+    app: loadgen
+    app.kubernetes.io/part-of: weather-demo
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadgen
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "/scripts/loadgen.sh"]
+          env:
+            - name: BASE_URL
+              value: "http://weather-app.weather-demo.svc.cluster.local"
+            - name: RATE
+              value: "2"
+            - name: DURATION
+              value: "60"
+            - name: BYPASS_RATIO
+              value: "10"
+          resources:
+            requests:
+              cpu:    "50m"
+              memory: "16Mi"
+            limits:
+              cpu:    "100m"
+              memory: "32Mi"
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: loadgen-script
+            defaultMode: 0755

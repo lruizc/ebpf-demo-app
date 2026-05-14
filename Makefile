@@ -77,10 +77,22 @@ reset: ## Restart Redis to wipe the cache (forces all cities to re-fetch)
 	$(KUBECTL) -n $(K8S_NS) rollout status  deployment/redis
 
 .PHONY: loadgen
-loadgen: ## Run the 90/10 load generator (requires APP_IP env var or lb-ip)
+loadgen: ## Run loadgen.sh locally against the MetalLB IP (requires APP_IP or lb-ip)
 	@IP=$${APP_IP:-$$($(MAKE) -s lb-ip)}; \
 	if [ -z "$$IP" ]; then echo "ERROR: APP_IP not set and lb-ip returned empty" >&2; exit 1; fi; \
 	bash loadgen/loadgen.sh "http://$$IP"
+
+.PHONY: loadgen-job
+loadgen-job: ## Apply loadgen Job inside the cluster and tail its logs
+	$(KUBECTL) apply -f loadgen/loadgen.yaml
+	@echo "Waiting for loadgen pod to start..."
+	$(KUBECTL) -n $(K8S_NS) wait job/loadgen --for=condition=ready --timeout=30s 2>/dev/null || true
+	$(KUBECTL) -n $(K8S_NS) logs -f job/loadgen
+
+.PHONY: loadgen-clean
+loadgen-clean: ## Delete the loadgen Job and its ConfigMap
+	$(KUBECTL) -n $(K8S_NS) delete job/loadgen --ignore-not-found
+	$(KUBECTL) -n $(K8S_NS) delete configmap/loadgen-script --ignore-not-found
 
 .PHONY: logs
 logs: ## Tail weather-app logs (JSON structured)

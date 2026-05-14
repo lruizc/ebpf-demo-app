@@ -103,10 +103,10 @@ Single Go project, `cmd/<binary>` + `internal/<package>` layout (see `plan.md` �
 
 ### Implementation
 
-- [ ] T034 [P] [US2] Author `loadgen/loadgen.sh`: bash + `curl`, configurable via env vars `URL` (required), `RATE` (default `30` rps), `DURATION` (default `60` s), `BYPASS_RATIO` (default `10` percent); uses the catalog of cities from a hard-coded array (mirrors the default catalog in `internal/config/cities.go`); prints a one-line summary every 10 s with `cache_hit / cache_miss / bypass / error` counts parsed from the `X-Source` header
-- [ ] T035 [P] [US2] Author `loadgen/loadgen.yaml`: a Kubernetes `Job` in `weather-demo` namespace using the `curlimages/curl` image; mounts `loadgen.sh` from a ConfigMap and runs it with `/bin/sh`; `URL` defaults to `http://weather-app.weather-demo.svc.cluster.local`; `restartPolicy: Never`, `backoffLimit: 0`. Includes the inline ConfigMap `loadgen-script` in the same file or as a sibling
-- [ ] T036 [US2] Extend `Makefile` with `loadgen` target: `URL ?= http://$(shell $(MAKE) -s lb-ip)`; runs `loadgen/loadgen.sh` against `$(URL)`. Add `loadgen-job` target that applies `loadgen/loadgen.yaml` and follows logs (`kubectl -n weather-demo logs -f job/loadgen`)
-- [ ] T037 [US2] Add a "Demo runbook" section to `README.md` describing the exact sequence to run during the talk (open dashboard → run loadgen → show Hubble). Cross-reference `quickstart.md`. Note the expected metric assertions: `weather_origin_requests_total{city="sao-paulo"}` grows monotonically; everything else has at most one increment per TTL window
+- [x] T034 [P] [US2] Author `loadgen/loadgen.sh`: bash + `curl`, configurable via env vars `URL` (required), `RATE` (default `30` rps), `DURATION` (default `60` s), `BYPASS_RATIO` (default `10` percent); uses the catalog of cities from a hard-coded array (mirrors the default catalog in `internal/config/cities.go`); prints a one-line summary every 10 s with `cache_hit / cache_miss / bypass / error` counts parsed from the `X-Source` header
+- [x] T035 [P] [US2] Author `loadgen/loadgen.yaml`: a Kubernetes `Job` in `weather-demo` namespace using the `curlimages/curl` image; mounts `loadgen.sh` from a ConfigMap and runs it with `/bin/sh`; `URL` defaults to `http://weather-app.weather-demo.svc.cluster.local`; `restartPolicy: Never`, `backoffLimit: 0`. Includes the inline ConfigMap `loadgen-script` in the same file or as a sibling
+- [x] T036 [US2] Extend `Makefile` with `loadgen` target: `URL ?= http://$(shell $(MAKE) -s lb-ip)`; runs `loadgen/loadgen.sh` against `$(URL)`. Add `loadgen-job` target that applies `loadgen/loadgen.yaml` and follows logs (`kubectl -n weather-demo logs -f job/loadgen`)
+- [x] T037 [US2] Add a "Demo runbook" section to `README.md` describing the exact sequence to run during the talk (open dashboard → run loadgen → show Hubble). Cross-reference `quickstart.md`. Note the expected metric assertions: `weather_origin_requests_total{city="sao-paulo"}` grows monotonically; everything else has at most one increment per TTL window
 
 **Checkpoint**: `make loadgen` runs cleanly for 60 s and prints the per-source counts; running `kubectl logs -f job/loadgen` in another window mirrors the same output. The talk's "eBPF moment" is now reproducible.
 
@@ -120,8 +120,8 @@ Single Go project, `cmd/<binary>` + `internal/<package>` layout (see `plan.md` �
 
 ### Implementation
 
-- [ ] T038 [US3] Extend `Makefile` with `reset` target: `kubectl -n weather-demo rollout restart deployment/redis && kubectl -n weather-demo rollout status deployment/redis --timeout=60s`
-- [ ] T039 [US3] Add a "Reset during the talk" subsection to `README.md` documenting the procedure, the expected ~5 s downtime, and the explicit guarantee that the `weather-app` Pod is NOT restarted (so request counters and goroutine lifetime stay continuous — useful when correlating with eBPF capture)
+- [x] T038 [US3] Extend `Makefile` with `reset` target: `kubectl -n weather-demo rollout restart deployment/redis && kubectl -n weather-demo rollout status deployment/redis --timeout=60s`
+- [x] T039 [US3] Add a "Reset during the talk" subsection to `README.md` documenting the procedure, the expected ~5 s downtime, and the explicit guarantee that the `weather-app` Pod is NOT restarted (so request counters and goroutine lifetime stay continuous — useful when correlating with eBPF capture)
 
 **Checkpoint**: `make reset` exits 0 in <30 s and the next non-bypass query returns `origin` again.
 
@@ -135,7 +135,7 @@ Single Go project, `cmd/<binary>` + `internal/<package>` layout (see `plan.md` �
 
 ### Implementation
 
-- [ ] T040 [US4] Document in `README.md` how the audience can reach the demo (one paragraph + the `make lb-ip` recipe). Include a short note that there is no auth, no rate limit, and that an audience cache miss costs the demo at most one extra origin call (acceptable per spec edge cases)
+- [x] T040 [US4] Document in `README.md` how the audience can reach the demo (one paragraph + the `make lb-ip` recipe). Include a short note that there is no auth, no rate limit, and that an audience cache miss costs the demo at most one extra origin call (acceptable per spec edge cases)
 
 **Checkpoint**: Curling the LB IP from a non-cluster machine on the LAN returns a 200 with valid JSON.
 
@@ -145,12 +145,12 @@ Single Go project, `cmd/<binary>` + `internal/<package>` layout (see `plan.md` �
 
 **Purpose**: Last-mile quality gates and documentation that touch multiple stories.
 
-- [ ] T041 [P] Final `README.md` pass: project description, architecture diagram (ASCII or mermaid), constitution highlights, link to spec/plan/quickstart, list of make targets, troubleshooting cheat-sheet from `quickstart.md` § Troubleshooting
-- [ ] T042 [P] Author `LICENSE` (MIT) at repo root
-- [ ] T043 [P] Run `gofmt -w .` and `go vet ./...` across the repo; fix any findings
-- [ ] T044 [P] Run `go test -race ./...` and confirm 100 % pass rate on the targeted-test files (`decide_test.go`, `client_test.go`, `redis_test.go`)
-- [ ] T045 Verify the `quickstart.md` end-to-end on a clean `weather-demo` namespace: `make image → load → deploy → wait → curl /api/weather → make loadgen → make reset → make undeploy`. Update the doc if any command needs adjustment.
-- [ ] T046 Constitutional compliance review: confirm zero `Secret` resources in `manifests/`, zero outbound dial-out from app code other than Redis and Open-Meteo (grep for `http.Client` / `Get(` instances), and that `source` is unconditionally set on every JSON response. Document the review outcome in a short comment block at the top of `cmd/weather-app/main.go`.
+- [x] T041 [P] Final `README.md` pass: project description, architecture diagram (ASCII or mermaid), constitution highlights, link to spec/plan/quickstart, list of make targets, troubleshooting cheat-sheet from `quickstart.md` § Troubleshooting
+- [x] T042 [P] Author `LICENSE` (MIT) at repo root
+- [x] T043 [P] Run `gofmt -w .` and `go vet ./...` across the repo; fix any findings
+- [x] T044 [P] Run `go test -race ./...` and confirm 100 % pass rate on the targeted-test files (`decide_test.go`, `client_test.go`, `redis_test.go`)
+- [x] T045 Verify the `quickstart.md` end-to-end on a clean `weather-demo` namespace: `make image → load → deploy → wait → curl /api/weather → make loadgen → make reset → make undeploy`. Update the doc if any command needs adjustment.
+- [x] T046 Constitutional compliance review: confirm zero `Secret` resources in `manifests/`, zero outbound dial-out from app code other than Redis and Open-Meteo (grep for `http.Client` / `Get(` instances), and that `source` is unconditionally set on every JSON response. Document the review outcome in a short comment block at the top of `cmd/weather-app/main.go`.
 
 ---
 
