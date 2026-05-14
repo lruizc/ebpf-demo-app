@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>weather-app — eBPF demo</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Weather Cache Demo</h1>
+      <p class="subtitle">
+        El badge muestra de dónde vino la respuesta:<br>
+        <strong>verde = Redis interno</strong> &middot;
+        <strong>naranja = API externa (cache miss)</strong> &middot;
+        <strong>rojo = bypass (siempre externo)</strong>
+      </p>
+    </header>
+
+    <section class="query-form">
+      <label for="city-select">Ciudad:</label>
+      <select id="city-select">
+        {{range .Cities}}
+        <option value="{{.Slug}}">{{.DisplayName}}</option>
+        {{end}}
+      </select>
+      <button id="query-btn" type="button">Consultar</button>
+    </section>
+
+    <section id="result-panel" class="result-panel hidden">
+      <div id="source-badge" class="badge"></div>
+      <div class="weather-info">
+        <span id="city-name" class="city-name"></span>
+        <span id="temperature" class="temperature"></span>
+        <span id="condition" class="condition"></span>
+        <span id="fetched-at" class="fetched-at"></span>
+      </div>
+    </section>
+
+    <section id="error-panel" class="error-panel hidden">
+      <p id="error-message"></p>
+    </section>
+
+    {{if .PodName}}
+    <footer class="footer">
+      Pod: <code>{{.PodName}}</code> &middot; v{{.AppVersion}}
+    </footer>
+    {{end}}
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

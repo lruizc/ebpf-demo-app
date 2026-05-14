@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-app
+  namespace: weather-demo
+  labels:
+    app: weather-app
+    app.kubernetes.io/name: weather-app
+    app.kubernetes.io/part-of: weather-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-app
+  template:
+    metadata:
+      labels:
+        app: weather-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port:   "8080"
+        prometheus.io/path:   "/metrics"
+    spec:
+      containers:
+        - name: weather-app
+          image: weather-app:dev  # overridden via kustomize image or kubectl set image
+          imagePullPolicy: Never  # image is loaded via `kind load docker-image`
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: weather-app-config
+          resources:
+            requests:
+              cpu:    "50m"
+              memory: "32Mi"
+            limits:
+              cpu:    "500m"
+              memory: "128Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10

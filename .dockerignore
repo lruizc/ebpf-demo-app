@@ -1,0 +1,15 @@
+.git/
+.gitignore
+.cursor/
+.specify/
+specs/
+loadgen/
+manifests/
+*.md
+*.log
+coverage.out
+coverage.html
+Makefile
+LICENSE
+.dockerignore
+.env*

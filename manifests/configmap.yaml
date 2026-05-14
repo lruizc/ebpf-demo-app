@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: weather-app-config
+  namespace: weather-demo
+  labels:
+    app.kubernetes.io/name: weather-app
+data:
+  LISTEN_ADDR:     ":8080"
+  REDIS_ADDR:      "redis:6379"
+  OPEN_METEO_URL:  "https://api.open-meteo.com/v1/forecast"
+  TTL_SECONDS:     "3600"
+  BYPASS_CITIES:   "sao-paulo"
+  LOG_LEVEL:       "info"
