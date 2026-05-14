@@ -1,0 +1,58 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/weather-app
+/bin/
+/dist/
+*.exe
+coverage.out
+coverage.html
+
+# Go
+vendor/
+*.test
+/web/static/.cache/
+
+# Env / secrets (none expected, but just in case)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# ==========================================================================
+# Spec Kit
+# --------------------------------------------------------------------------
+# Spec Kit produces three kinds of files:
+#   1. Project-level methodology (committed):
+#        .specify/memory/         (constitution, the source of truth)
+#        .specify/templates/      (plan/spec/tasks templates this project pinned)
+#        .specify/scripts/        (helper bash scripts)
+#        .specify/workflows/      (workflow definitions)
+#        .specify/integrations/   (per-agent manifest)
+#        .specify/integration.json
+#        .specify/init-options.json
+#        .specify/feature.json    (REQUIRED: setup-tasks/setup-plan resolve the active feature dir from this file)
+#        specs/<NNN>-<slug>/      (feature-specific spec/plan/tasks/etc.)
+#        .cursor/skills/speckit-* (slash commands; agent-specific but useful for collaborators using the same agent)
+#        .cursor/rules/specify-rules.mdc (auto-generated; points at the active plan)
+#   2. User-local Cursor state (intentionally NOT versioned):
+#        .cursor/mcp.json         (per-user MCP config — may contain secrets/tokens)
+#   3. Runtime caches (NOT versioned):
+#        .specify/cache/
+.specify/cache/
+.cursor/mcp.json
+
+# eBPF / demo runtime artifacts produced during the talk (never want these committed)
+hubble-flows-*.txt
+*.pcap
