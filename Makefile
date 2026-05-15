@@ -15,8 +15,8 @@ IMAGE_TAG    ?= dev
 
 FULL_IMG     := $(IMAGE):$(IMAGE_TAG)
 
-# kind cluster name — change if yours is not called "kind"
-KIND_CLUSTER ?= kind
+# kind cluster name — override with: make load KIND_CLUSTER=<name>
+KIND_CLUSTER ?= ebpf-demo
 
 K8S_NS       := weather-demo
 KUBECONFIG   ?=
