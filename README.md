@@ -42,17 +42,52 @@ señal que eBPF/Hubble confirma a nivel de kernel.
 
 ---
 
-## Quickstart
+## Dónde se ejecuta cada comando
+
+> **Todos los comandos de despliegue corren en la torre Linux** donde está corriendo
+> el cluster kind. La Mac solo sirve para editar código.
+
+| Comando | Dónde corre |
+|---|---|
+| `make build` / `make test` | Cualquier máquina con Go instalado |
+| `make image` | Torre Linux (necesita Docker) |
+| `make load` | Torre Linux (necesita `kind` CLI) |
+| `make deploy` / `make wait` / `make lb-ip` | Torre Linux (necesita `kubectl`) |
+| `make loadgen` / `make reset` / `make logs` | Torre Linux |
+
+## Quickstart (en la torre Linux)
 
 Ver la guía paso a paso: [`specs/001-weather-cache-demo/quickstart.md`](specs/001-weather-cache-demo/quickstart.md)
 
 ```bash
-make image                    # docker build → weather-app:dev
-make load                     # kind load docker-image weather-app:dev
-make deploy                   # kubectl apply -k manifests/
-make wait                     # espera los dos Deployments Available
+# 1. Clonar el repo en la torre Linux
+git clone lruizc.github.com:lruizc/ebpf-demo-app.git
+cd ebpf-demo-app
+git checkout 001-weather-cache-demo
+
+# 2. Construir la imagen Docker (tag: weather-app:dev)
+make image
+
+# 3. Cargar la imagen en kind
+#    Si tu cluster tiene un nombre diferente a "kind":
+#    make load KIND_CLUSTER=<nombre>
+make load
+
+# 4. Desplegar en Kubernetes
+make deploy
+make wait      # espera Redis + weather-app Available
+
+# 5. Obtener la IP y abrir el dashboard
+make lb-ip     # ej: 192.168.64.100
+# Abrir http://<IP>/ en el browser
+```
+
+**Verificación rápida:**
+```bash
 APP_IP=$(make -s lb-ip)
-open "http://${APP_IP}/"      # o xdg-open en Linux
+curl "http://${APP_IP}/api/weather?city=bogota"    # → "source":"origin"
+curl "http://${APP_IP}/api/weather?city=bogota"    # → "source":"cache"
+curl "http://${APP_IP}/api/weather?city=sao-paulo" # → "source":"bypass"
 ```
 
 ---
@@ -80,7 +115,9 @@ open "http://${APP_IP}/"      # o xdg-open en Linux
 
 ## Demo runbook (secuencia durante la charla)
 
-### 1. Pre-talk — preparar el cluster
+> Todos los comandos se ejecutan en la **torre Linux** desde el directorio del repo.
+
+### 1. Pre-talk — preparar el cluster (en la torre Linux)
 
 ```bash
 make image && make load && make deploy && make wait

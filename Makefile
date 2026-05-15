@@ -2,13 +2,24 @@
 # weather-app — eBPF talk demo
 # ──────────────────────────────────────────────────────────────────────────────
 
-APP      := weather-app
-IMAGE    := $(APP)
-VERSION  ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-REGISTRY ?=
-FULL_IMG := $(if $(REGISTRY),$(REGISTRY)/$(IMAGE):$(VERSION),$(IMAGE):$(VERSION))
-K8S_NS   := weather-demo
-KUBECONFIG ?=
+APP          := weather-app
+IMAGE        := $(APP)
+
+# VERSION is used only to stamp the binary (-ldflags -X main.version).
+# It does NOT control the Docker image tag — use IMAGE_TAG for that.
+VERSION      ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+
+# IMAGE_TAG is the Docker tag built, loaded into kind, and referenced by the manifest.
+# Keep this as "dev" (the manifest hardcodes weather-app:dev) unless you're cutting a release.
+IMAGE_TAG    ?= dev
+
+FULL_IMG     := $(IMAGE):$(IMAGE_TAG)
+
+# kind cluster name — change if yours is not called "kind"
+KIND_CLUSTER ?= kind
+
+K8S_NS       := weather-demo
+KUBECONFIG   ?=
 
 ifeq ($(KUBECONFIG),)
   KUBECTL := kubectl
@@ -41,12 +52,14 @@ vet: ## Run go vet
 # ── Container image ────────────────────────────────────────────────────────────
 
 .PHONY: image
-image: ## Build the Docker image  (weather-app:<VERSION>)
+image: ## Build the Docker image (weather-app:dev by default)
 	docker build --build-arg VERSION=$(VERSION) -t $(FULL_IMG) .
+	@echo "Built $(FULL_IMG) — stamp: $(VERSION)"
 
 .PHONY: load
-load: ## Load the Docker image into the kind cluster
-	kind load docker-image $(FULL_IMG)
+load: ## Load the Docker image into the kind cluster (KIND_CLUSTER=kind)
+	kind load docker-image $(FULL_IMG) --name $(KIND_CLUSTER)
+	@echo "Loaded $(FULL_IMG) into cluster '$(KIND_CLUSTER)'"
 
 # ── Kubernetes ─────────────────────────────────────────────────────────────────
 
