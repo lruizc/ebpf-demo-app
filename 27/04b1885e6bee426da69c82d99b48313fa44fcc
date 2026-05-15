@@ -1,0 +1,23 @@
+Makefile
+  s_8f5a88b70ca6ca::t_da83e196104eee 55,57,60-62
+  s_8f5a88b70ca6ca::t_f4819e070968b9 5-22
+README.md
+  s_8f5a88b70ca6ca::t_397f67c8bd004f 45-58,63-86,88-90
+  s_8f5a88b70ca6ca::t_72483d9c6860f9 118-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "2704b1885e6bee426da69c82d99b48313fa44fcc",
+  "prompts": {},
+  "sessions": {
+    "s_8f5a88b70ca6ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a94c542-b51f-4121-92ee-c4940986b87f",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "luisruiz_meli <luismiguel.ruiz@mercadolibre.com.co>"
+    }
+  }
+}
