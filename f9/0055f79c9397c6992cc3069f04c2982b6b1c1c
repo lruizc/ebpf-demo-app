@@ -1,0 +1,30 @@
+Makefile
+  s_8f5a88b70ca6ca::t_bb3b30d640cd5f 8,13,35,39,43,57,60,71,88,99,111,117
+manifests/redis-deployment.yaml
+  s_8f5a88b70ca6ca::t_5e1cbd119416f9 25
+README.md
+  s_8f5a88b70ca6ca::t_4571ab7e070f97 3-6,8,12,23,26,29,32-33,35,37-41,45,47-48,50,52-56,58,60,63,68,71-73,76,78,80-82,85,97,99-102,105-112,116,118,120,128,130,133-136,139,141,144,147,151-152,154,156,159,162,168-169,171,176-177,182,184,190,192-195,199,201,204,207,213-215,219,221,223-229,231,238,242,246-247,249,255,257,259-261
+loadgen/loadgen.sh
+  s_8f5a88b70ca6ca::t_d2863303027dbc 2,9-11,14
+README.local.md
+  s_8f5a88b70ca6ca::t_0a456eee1dcc4b 4,7,13,15,19,24
+cmd/weather-app/main.go
+  s_8f5a88b70ca6ca::t_8dc268c53dea6d 37
+  s_8f5a88b70ca6ca::t_0328241ced89e5 22,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "f90055f79c9397c6992cc3069f04c2982b6b1c1c",
+  "prompts": {},
+  "sessions": {
+    "s_8f5a88b70ca6ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a94c542-b51f-4121-92ee-c4940986b87f",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "luisruiz_meli <luismiguel.ruiz@mercadolibre.com.co>"
+    }
+  }
+}
