@@ -19,9 +19,9 @@ import (
 // version is overridden at build time via -ldflags "-X main.version=<VERSION>".
 var version = "dev"
 
-// Constitution note (v1.0.1 — Principle IV, eBPF Narrative Integrity):
+// Constitution v1.0.1 — Principle IV (eBPF Narrative Integrity):
 // The ONLY outbound TCP dials this process makes are:
-//   (a) cfg.RedisAddr — cache reads/writes for non-bypass cities.
+//   (a) cfg.RedisAddr    — cache reads/writes for non-bypass cities.
 //   (b) cfg.OpenMeteoURL — weather fetches for cache misses and bypass cities.
 // No background goroutines, no telemetry, no update checks, no pre-warming.
 
@@ -34,7 +34,7 @@ func main() {
 
 	log := obs.NewLogger(cfg.LogLevel)
 
-	// Attempt to connect to Redis; start degraded (nil store) after two tries.
+	// Attempt to connect to Redis; fall back to degraded mode (nil store) after two tries.
 	var cacheStore *cache.Store
 	for attempt := 1; attempt <= 2; attempt++ {
 		cacheStore, err = cache.New(cfg.RedisAddr, log)

@@ -22,7 +22,7 @@ spec:
           image: redis:7-alpine
           ports:
             - containerPort: 6379
-          # No persistence — cache is ephemeral by design (demo reset via restart)
+          # No persistence — cache is intentionally ephemeral (reset via pod restart)
           command: ["redis-server", "--save", "", "--appendonly", "no"]
           resources:
             requests:

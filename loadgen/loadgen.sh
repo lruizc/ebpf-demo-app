@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
 # loadgen.sh — weather-app load generator for the eBPF demo
 #
 # Usage:
 #   bash loadgen.sh [BASE_URL]
 #
 # Environment variables:
-#   BASE_URL      — target base URL            (default: http://localhost:8080)
-#   RATE          — requests per second        (default: 2)
-#   DURATION      — run duration in seconds    (default: 0 = run forever)
+#   BASE_URL      — target base URL              (default: http://localhost:8080)
+#   RATE          — requests per second          (default: 2)
+#   DURATION      — run duration in seconds      (default: 0 = run forever)
 #   BYPASS_RATIO  — % of requests to bypass city (default: 10)
 #
-# Output: one line per request; summary every 10 s with per-source counts.
+# Output: one line per request; summary every 10 s with per-source counters.
 #
 # Requires: curl, bc
 

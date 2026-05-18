@@ -1,15 +1,15 @@
 # weather-app — eBPF talk demo
 
-Un binario Go único que sirve un dashboard del clima para ciudades sudamericanas,
-respaldado por un caché Redis. Una ciudad (`sao-paulo` por defecto) está configurada
-para **siempre bypassear el caché**, produciendo un flujo constante de tráfico HTTPS
-externo — el objetivo perfecto para aislar con eBPF / Hubble durante una charla en vivo.
+A single Go binary that serves a weather dashboard for South-American cities,
+backed by a Redis cache. One city (`sao-paulo` by default) is configured to
+**always bypass the cache**, producing a constant stream of external HTTPS traffic —
+the perfect target to isolate with eBPF / Hubble during a live talk.
 
-> Especificación completa, plan y quickstart: [`specs/001-weather-cache-demo/`](specs/001-weather-cache-demo/)
+> Full specification, plan and quickstart: [`specs/001-weather-cache-demo/`](specs/001-weather-cache-demo/)
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```
 Browser / curl
@@ -20,69 +20,69 @@ Browser / curl
 │                                     │
 │  handler → Decide(cfg, slug, cache) │
 │      │                              │
-│   cache ──── Redis Pod ─────────────┼── ClusterIP (solo tráfico interno)
+│   cache ──── Redis Pod ─────────────┼── ClusterIP (internal traffic only)
 │   origin/bypass                     │
 │      │                              │
-│      └─── api.open-meteo.com ───────┼── EGRESS (solo en miss o bypass)
+│      └─── api.open-meteo.com ───────┼── EGRESS (only on miss or bypass)
 └─────────────────────────────────────┘
          ▲
-    MetalLB LoadBalancer IP   ← audiencia + speaker + loadgen
+    MetalLB LoadBalancer IP   ← audience + speaker + loadgen
 ```
 
-El campo `source` en cada respuesta JSON (`cache` / `origin` / `bypass`) es la
-señal que eBPF/Hubble confirma a nivel de kernel.
+The `source` field in every JSON response (`cache` / `origin` / `bypass`) is the
+signal that eBPF/Hubble confirms at the kernel level.
 
-**Badges en el dashboard:**
+**Dashboard badges:**
 
-| Badge | Color | Significado eBPF |
-|-------|-------|-----------------|
-| `cache HIT (internal)` | 🟢 Verde | Cero paquetes hacia internet |
-| `cache MISS (external)` | 🟠 Naranja | Un flujo saliente a Open-Meteo |
-| `BYPASS (always external)` | 🔴 Rojo | Flujo saliente siempre visible |
+| Badge | Color | eBPF meaning |
+|-------|-------|--------------|
+| `cache HIT (internal)` | 🟢 Green | Zero packets to the internet |
+| `cache MISS (external)` | 🟠 Orange | One outbound flow to Open-Meteo |
+| `BYPASS (always external)` | 🔴 Red | Outbound flow always visible |
 
 ---
 
-## Dónde se ejecuta cada comando
+## Where each command runs
 
-> **Todos los comandos de despliegue corren en la torre Linux** donde está corriendo
-> el cluster kind. La Mac solo sirve para editar código.
+> **All deployment commands run on the Linux tower** where the kind cluster is running.
+> The Mac is only used for editing code.
 
-| Comando | Dónde corre |
+| Command | Where |
 |---|---|
-| `make build` / `make test` | Cualquier máquina con Go instalado |
-| `make image` | Torre Linux (necesita Docker) |
-| `make load` | Torre Linux (necesita `kind` CLI) |
-| `make deploy` / `make wait` / `make lb-ip` | Torre Linux (necesita `kubectl`) |
-| `make loadgen` / `make reset` / `make logs` | Torre Linux |
+| `make build` / `make test` | Any machine with Go installed |
+| `make image` | Linux tower (requires Docker) |
+| `make load` | Linux tower (requires `kind` CLI) |
+| `make deploy` / `make wait` / `make lb-ip` | Linux tower (requires `kubectl`) |
+| `make loadgen` / `make reset` / `make logs` | Linux tower |
 
-## Quickstart (en la torre Linux)
+## Quickstart (on the Linux tower)
 
-Ver la guía paso a paso: [`specs/001-weather-cache-demo/quickstart.md`](specs/001-weather-cache-demo/quickstart.md)
+Step-by-step guide: [`specs/001-weather-cache-demo/quickstart.md`](specs/001-weather-cache-demo/quickstart.md)
 
 ```bash
-# 1. Clonar el repo en la torre Linux
+# 1. Clone the repo on the Linux tower
 git clone lruizc.github.com:lruizc/ebpf-demo-app.git
 cd ebpf-demo-app
 git checkout 001-weather-cache-demo
 
-# 2. Construir la imagen Docker (tag: weather-app:dev)
+# 2. Build the Docker image (tag: weather-app:dev)
 make image
 
-# 3. Cargar la imagen en kind
-#    Si tu cluster tiene un nombre diferente a "kind":
-#    make load KIND_CLUSTER=<nombre>
+# 3. Load the image into kind
+#    If your cluster has a different name than "ebpf-demo":
+#    make load KIND_CLUSTER=<name>
 make load
 
-# 4. Desplegar en Kubernetes
+# 4. Deploy to Kubernetes
 make deploy
-make wait      # espera Redis + weather-app Available
+make wait      # waits for Redis + weather-app to be Available
 
-# 5. Obtener la IP y abrir el dashboard
-make lb-ip     # ej: 192.168.64.100
-# Abrir http://<IP>/ en el browser
+# 5. Get the IP and open the dashboard
+make lb-ip     # e.g.: 192.168.64.100
+# Open http://<IP>/ in the browser
 ```
 
-**Verificación rápida:**
+**Quick verification:**
 ```bash
 APP_IP=$(make -s lb-ip)
 curl "http://${APP_IP}/api/weather?city=bogota"    # → "source":"origin"
@@ -94,30 +94,30 @@ curl "http://${APP_IP}/api/weather?city=sao-paulo" # → "source":"bypass"
 
 ## Make targets
 
-| Target | Descripción |
+| Target | Description |
 |---|---|
-| `make build` | Compila el binario localmente |
-| `make test` | Corre los tests unitarios (race detector) |
-| `make image` | Construye la imagen Docker (`weather-app:dev`) |
-| `make load` | Carga la imagen en kind |
+| `make build` | Compile the binary locally |
+| `make test` | Run unit tests (with race detector) |
+| `make image` | Build the Docker image (`weather-app:dev`) |
+| `make load` | Load the image into kind |
 | `make deploy` | `kubectl apply -k manifests/` |
 | `make undeploy` | `kubectl delete -k manifests/` |
-| `make wait` | Espera a que ambos Deployments estén Available |
-| `make lb-ip` | Imprime la IP de MetalLB |
-| `make loadgen` | Generador de carga local (90/10) |
-| `make loadgen-job` | Corre el Job de carga dentro del cluster y sigue los logs |
-| `make loadgen-clean` | Elimina el Job y su ConfigMap |
-| `make reset` | Reinicia Redis para limpiar el caché |
-| `make logs` | Sigue los logs estructurados JSON del app |
-| `make help` | Muestra todos los targets |
+| `make wait` | Wait for both Deployments to be Available |
+| `make lb-ip` | Print the MetalLB LoadBalancer IP |
+| `make loadgen` | Run the 90/10 load generator locally |
+| `make loadgen-job` | Run the load generator as a Job inside the cluster and tail logs |
+| `make loadgen-clean` | Delete the loadgen Job and its ConfigMap |
+| `make reset` | Restart Redis to wipe the cache |
+| `make logs` | Tail JSON structured logs from the app |
+| `make help` | Show all targets |
 
 ---
 
-## Demo runbook (secuencia durante la charla)
+## Demo runbook (talk sequence)
 
-> Todos los comandos se ejecutan en la **torre Linux** desde el directorio del repo.
+> All commands run on the **Linux tower** from the repo directory.
 
-### 1. Pre-talk — preparar el cluster (en la torre Linux)
+### 1. Pre-talk — set up the cluster (on the Linux tower)
 
 ```bash
 make image && make load && make deploy && make wait
@@ -125,139 +125,137 @@ APP_IP=$(make -s lb-ip)
 echo "Dashboard: http://${APP_IP}/"
 ```
 
-### 2. Mostrar el dashboard en el proyector
+### 2. Show the dashboard on the projector
 
-Abrir `http://<APP_IP>/` en el browser del presenter.
+Open `http://<APP_IP>/` in the presenter's browser.
 
 ```bash
-# Verificar los tres estados:
-curl -s "http://${APP_IP}/api/weather?city=bogota"    # source: origin (primera vez)
-curl -s "http://${APP_IP}/api/weather?city=bogota"    # source: cache  (dentro del TTL)
-curl -s "http://${APP_IP}/api/weather?city=sao-paulo" # source: bypass (siempre)
+# Verify the three states:
+curl -s "http://${APP_IP}/api/weather?city=bogota"    # source: origin (first time)
+curl -s "http://${APP_IP}/api/weather?city=bogota"    # source: cache  (within TTL)
+curl -s "http://${APP_IP}/api/weather?city=sao-paulo" # source: bypass (always)
 ```
 
-### 3. Iniciar el generador de carga (eBPF moment)
+### 3. Start the load generator (eBPF moment)
 
-En una terminal separada — esto produce el tráfico que Hubble/Cilium observa:
+In a separate terminal — this produces the traffic that Hubble/Cilium observes:
 
 ```bash
-# Opción A: local contra MetalLB
+# Option A: locally against the MetalLB IP
 APP_IP=$(make -s lb-ip) make loadgen
 
-# Opción B: Job dentro del cluster (recomendado para la charla)
+# Option B: Job inside the cluster (recommended for the talk)
 make loadgen-job
 ```
 
-El generador produce ~90% caché hits (tráfico interno) y ~10% bypass hacia
-`api.open-meteo.com` (tráfico externo visible en eBPF).
+The generator produces ~90% cache hits (internal traffic) and ~10% bypass requests to
+`api.open-meteo.com` (external traffic visible in eBPF).
 
-### 4. Mostrar Hubble / eBPF
+### 4. Show Hubble / eBPF
 
-Con el loadgen corriendo, en otra terminal filtrar los flujos:
+With the load generator running, filter flows in another terminal:
 
 ```bash
-# Hubble CLI (si está instalado)
+# Hubble CLI (if installed)
 hubble observe --pod weather-demo/weather-app --follow
 
-# Solo flujos externos
+# External flows only
 hubble observe --pod weather-demo/weather-app \
   --verdict FORWARDED --follow \
   | grep -v "redis"
 ```
 
-**Expectativa:** Los únicos flujos externos son hacia `api.open-meteo.com`
-y coinciden 1:1 con requests de `sao-paulo`.
+**Expected result:** The only external flows are to `api.open-meteo.com`
+and they correlate 1:1 with `sao-paulo` requests.
 
-### 5. Verificar con métricas Prometheus
+### 5. Verify with Prometheus metrics
 
 ```bash
 curl -s "http://${APP_IP}/metrics" \
   | grep weather_origin_requests_total
-# weather_origin_requests_total{city="sao-paulo",outcome="success"} X  ← crece
-# weather_origin_requests_total{city="bogota",outcome="success"}    1  ← solo 1
+# weather_origin_requests_total{city="sao-paulo",outcome="success"} X  ← grows
+# weather_origin_requests_total{city="bogota",outcome="success"}    1  ← only 1
 ```
 
 ---
 
-## Reset durante la charla
+## Reset mid-talk
 
-Si el demo se desincroniza o quieres mostrar el estado "frío" de nuevo:
+If the demo gets out of sync or you want to show the cold-cache state again:
 
 ```bash
 make reset
 ```
 
-Este comando hace `kubectl rollout restart deployment/redis`, lo que:
+This runs `kubectl rollout restart deployment/redis`, which:
 
-- **Limpia todo el caché** (el pod de Redis es efímero, sin PVC)
-- **No reinicia el pod de `weather-app`** — los contadores Prometheus y el ciclo
-  de vida del proceso continúan sin interrupciones (útil para correlacionar con
-  capturas eBPF que usan el PID del proceso)
-- El downtime de Redis es ~3-5 segundos; durante ese tiempo el app opera
-  en modo degradado (sin caché) y sigue respondiendo
+- **Wipes the entire cache** (the Redis pod is ephemeral, no PVC)
+- **Does NOT restart the `weather-app` pod** — Prometheus counters and process
+  lifecycle remain continuous (useful for correlating with eBPF captures that use the process PID)
+- Redis downtime is ~3-5 seconds; during that window the app runs degraded (no cache) and keeps responding
 
 ---
 
-## Acceso de la audiencia desde la LAN
+## Audience access from the LAN
 
-La IP de MetalLB es accesible desde cualquier dispositivo en la misma red:
+The MetalLB IP is reachable from any device on the same network:
 
 ```bash
-make lb-ip    # imprime la IP, ej: 192.168.64.100
+make lb-ip    # e.g.: 192.168.64.100
 ```
 
-Desde el celular o laptop de la audiencia:
+From the audience's phone or laptop:
 
 ```
 http://192.168.64.100/
 ```
 
-No hay autenticación ni rate limit. Un cache miss desde la audiencia genera
-como máximo una llamada extra a Open-Meteo por ciudad por hora — comportamiento
-aceptable e incluso útil para enriquecer la visualización en Hubble.
+No authentication, no rate limit. An audience cache miss generates at most one extra
+call to Open-Meteo per city per hour — acceptable and even useful for enriching the
+Hubble visualization.
 
 ---
 
-## Configuración (env vars / ConfigMap)
+## Configuration (env vars / ConfigMap)
 
-| Clave | Default | Descripción |
+| Key | Default | Description |
 |---|---|---|
-| `BYPASS_CITIES` | `sao-paulo` | Slugs separados por coma que siempre van al origen |
-| `TTL_SECONDS` | `3600` | TTL del caché en segundos |
-| `REDIS_ADDR` | `redis:6379` | Host:port de Redis |
-| `OPEN_METEO_URL` | `https://api.open-meteo.com/v1/forecast` | URL base del API de clima |
-| `LISTEN_ADDR` | `:8080` | Dirección HTTP de escucha |
-| `LOG_LEVEL` | `info` | Nivel de log: debug/info/warn/error |
-| `CITIES` | *(8 ciudades SA)* | Override JSON del catálogo de ciudades |
+| `BYPASS_CITIES` | `sao-paulo` | Comma-separated city slugs that always go to origin |
+| `TTL_SECONDS` | `3600` | Cache TTL in seconds (1 hour) |
+| `REDIS_ADDR` | `redis:6379` | Redis host:port |
+| `OPEN_METEO_URL` | `https://api.open-meteo.com/v1/forecast` | Weather API base URL |
+| `LISTEN_ADDR` | `:8080` | HTTP bind address |
+| `LOG_LEVEL` | `info` | Log level: debug/info/warn/error |
+| `CITIES` | *(8 SA cities)* | JSON array override for the city catalog |
 
-Modificar `manifests/configmap.yaml` para cambiar la config en Kubernetes.
+Edit `manifests/configmap.yaml` to change the config in Kubernetes.
 
 ---
 
 ## Troubleshooting
 
 ```bash
-# App no responde
+# App not responding
 kubectl -n weather-demo get pods
 kubectl -n weather-demo describe pod -l app=weather-app
 
-# Redis no conecta
+# Redis not connecting
 kubectl -n weather-demo logs -l app=redis
 kubectl -n weather-demo exec -it deploy/redis -- redis-cli ping
 
-# IP de MetalLB vacía
-kubectl -n weather-demo get svc weather-app   # revisar EXTERNAL-IP
+# Empty MetalLB IP
+kubectl -n weather-demo get svc weather-app   # check EXTERNAL-IP
 
-# Logs JSON estructurados
+# JSON structured logs
 make logs | jq .
 ```
 
 ---
 
-## Constitución (v1.0.1)
+## Constitution (v1.0.1)
 
-Principios no negociables: [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
+Non-negotiable principles: [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
 
-Los únicos dials TCP externos del proceso son:
-1. `redis:6379` — lecturas/escrituras de caché
-2. `api.open-meteo.com` — fetch de clima (solo en miss o bypass)
+The only outbound TCP dials from the process are:
+1. `redis:6379` — cache reads/writes
+2. `api.open-meteo.com` — weather fetch (only on miss or bypass)

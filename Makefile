@@ -5,12 +5,12 @@
 APP          := weather-app
 IMAGE        := $(APP)
 
-# VERSION is used only to stamp the binary (-ldflags -X main.version).
+# VERSION stamps the binary only (-ldflags -X main.version).
 # It does NOT control the Docker image tag — use IMAGE_TAG for that.
 VERSION      ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 
 # IMAGE_TAG is the Docker tag built, loaded into kind, and referenced by the manifest.
-# Keep this as "dev" (the manifest hardcodes weather-app:dev) unless you're cutting a release.
+# Keep as "dev" (manifest hardcodes weather-app:dev) unless cutting a release.
 IMAGE_TAG    ?= dev
 
 FULL_IMG     := $(IMAGE):$(IMAGE_TAG)
@@ -32,15 +32,15 @@ endif
 # ── Local build ────────────────────────────────────────────────────────────────
 
 .PHONY: build
-build: ## Build the binary locally (output: ./weather-app)
+build: ## Compile the binary locally (output: ./weather-app)
 	go build -ldflags="-X main.version=$(VERSION)" -o ./$(APP) ./cmd/weather-app
 
 .PHONY: test
-test: ## Run all unit tests
+test: ## Run all unit tests (race detector)
 	go test -race -count=1 ./...
 
 .PHONY: test-cover
-test-cover: ## Run tests with HTML coverage report
+test-cover: ## Run tests and generate HTML coverage report
 	go test -race -count=1 -coverprofile=coverage.out ./... && \
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Open coverage.html in your browser"
@@ -54,10 +54,10 @@ vet: ## Run go vet
 .PHONY: image
 image: ## Build the Docker image (weather-app:dev by default)
 	docker build --build-arg VERSION=$(VERSION) -t $(FULL_IMG) .
-	@echo "Built $(FULL_IMG) — stamp: $(VERSION)"
+	@echo "Built $(FULL_IMG) — binary stamp: $(VERSION)"
 
 .PHONY: load
-load: ## Load the Docker image into the kind cluster (KIND_CLUSTER=kind)
+load: ## Load the Docker image into the kind cluster
 	kind load docker-image $(FULL_IMG) --name $(KIND_CLUSTER)
 	@echo "Loaded $(FULL_IMG) into cluster '$(KIND_CLUSTER)'"
 
@@ -68,7 +68,7 @@ deploy: ## Apply all manifests via kustomize
 	$(KUBECTL) apply -k manifests/
 
 .PHONY: undeploy
-undeploy: ## Delete all manifests (keeps the namespace)
+undeploy: ## Delete all manifests (namespace is kept)
 	$(KUBECTL) delete -k manifests/ --ignore-not-found
 
 .PHONY: wait
@@ -85,7 +85,7 @@ lb-ip: ## Print the MetalLB LoadBalancer IP for weather-app
 # ── Demo helpers ───────────────────────────────────────────────────────────────
 
 .PHONY: reset
-reset: ## Restart Redis to wipe the cache (forces all cities to re-fetch)
+reset: ## Restart Redis to wipe the cache (app pod is NOT restarted)
 	$(KUBECTL) -n $(K8S_NS) rollout restart deployment/redis
 	$(KUBECTL) -n $(K8S_NS) rollout status  deployment/redis
 
@@ -96,7 +96,7 @@ loadgen: ## Run loadgen.sh locally against the MetalLB IP (requires APP_IP or lb
 	bash loadgen/loadgen.sh "http://$$IP"
 
 .PHONY: loadgen-job
-loadgen-job: ## Apply loadgen Job inside the cluster and tail its logs
+loadgen-job: ## Run the load generator as a Job inside the cluster and tail logs
 	$(KUBECTL) apply -f loadgen/loadgen.yaml
 	@echo "Waiting for loadgen pod to start..."
 	$(KUBECTL) -n $(K8S_NS) wait job/loadgen --for=condition=ready --timeout=30s 2>/dev/null || true
@@ -108,13 +108,13 @@ loadgen-clean: ## Delete the loadgen Job and its ConfigMap
 	$(KUBECTL) -n $(K8S_NS) delete configmap/loadgen-script --ignore-not-found
 
 .PHONY: logs
-logs: ## Tail weather-app logs (JSON structured)
+logs: ## Tail JSON structured logs from the weather-app pod
 	$(KUBECTL) -n $(K8S_NS) logs -l app=weather-app -f --tail=50
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 .PHONY: clean
-clean: ## Remove local build artefacts
+clean: ## Remove local build artifacts
 	rm -f ./$(APP) coverage.out coverage.html
 
 .PHONY: help
