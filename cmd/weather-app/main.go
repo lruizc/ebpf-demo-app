@@ -34,9 +34,12 @@ func main() {
 
 	log := obs.NewLogger(cfg.LogLevel)
 
-	// Attempt to connect to Redis; fall back to degraded mode (nil store) after two tries.
+	// Attempt to connect to Redis; fall back to degraded mode (nil store) if all attempts fail.
+	// The initContainer in the Deployment already waits for Redis, so this loop is a safety net
+	// for local runs or environments without initContainers.
+	const redisMaxAttempts = 10
 	var cacheStore *cache.Store
-	for attempt := 1; attempt <= 2; attempt++ {
+	for attempt := 1; attempt <= redisMaxAttempts; attempt++ {
 		cacheStore, err = cache.New(cfg.RedisAddr, log)
 		if err == nil {
 			break
@@ -46,8 +49,8 @@ func main() {
 			"attempt", attempt,
 			"err", err.Error(),
 		)
-		if attempt < 2 {
-			time.Sleep(2 * time.Second)
+		if attempt < redisMaxAttempts {
+			time.Sleep(3 * time.Second)
 		}
 	}
 	if err != nil {

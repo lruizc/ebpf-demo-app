@@ -21,6 +21,28 @@ spec:
         prometheus.io/port:   "8080"
         prometheus.io/path:   "/metrics"
     spec:
+      initContainers:
+        # Block the app container until Redis is accepting connections.
+        # This prevents the startup race condition that causes degraded mode.
+        - name: wait-redis
+          image: redis:7-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Redis at redis:6379..."
+              until redis-cli -h redis -p 6379 ping | grep -q PONG; do
+                echo "Redis not ready — retrying in 2s"
+                sleep 2
+              done
+              echo "Redis is ready."
+          resources:
+            requests:
+              cpu:    "10m"
+              memory: "16Mi"
+            limits:
+              cpu:    "50m"
+              memory: "32Mi"
       containers:
         - name: weather-app
           image: weather-app:dev  # overridden via kustomize image or kubectl set image
