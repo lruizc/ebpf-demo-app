@@ -11,21 +11,21 @@
     <header>
       <h1>Weather Cache Demo</h1>
       <p class="subtitle">
-        El badge muestra de dónde vino la respuesta:<br>
-        <strong>verde = Redis interno</strong> &middot;
-        <strong>naranja = API externa (cache miss)</strong> &middot;
-        <strong>rojo = bypass (siempre externo)</strong>
+        The badge shows where the response came from:<br>
+        <strong>green = internal Redis cache</strong> &middot;
+        <strong>orange = external API (cache miss)</strong> &middot;
+        <strong>red = bypass (always external)</strong>
       </p>
     </header>
 
     <section class="query-form">
-      <label for="city-select">Ciudad:</label>
+      <label for="city-select">City:</label>
       <select id="city-select">
         {{range .Cities}}
         <option value="{{.Slug}}">{{.DisplayName}}</option>
         {{end}}
       </select>
-      <button id="query-btn" type="button">Consultar</button>
+      <button id="query-btn" type="button">Query</button>
     </section>
 
     <section id="result-panel" class="result-panel hidden">

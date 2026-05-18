@@ -88,17 +88,15 @@ func (c *Client) Fetch(ctx context.Context, city config.City) (Snapshot, error) 
 		condition = fmt.Sprintf("Code %d", omr.CurrentWeather.Weathercode)
 	}
 
-	fetchedAt := time.Now().UTC()
-	if t, err := time.Parse("2006-01-02T15:04", omr.CurrentWeather.Time); err == nil {
-		fetchedAt = t.UTC()
-	}
-
+	// FetchedAt is always the wall-clock time of this fetch, not the API's
+	// meteorological observation time. The Decide() function uses FetchedAt
+	// to evaluate TTL expiry, so it must reflect when the data was cached.
 	return Snapshot{
 		City:         city.Slug,
 		DisplayName:  city.DisplayName,
 		TemperatureC: omr.CurrentWeather.Temperature,
 		Condition:    condition,
 		WeatherCode:  omr.CurrentWeather.Weathercode,
-		FetchedAt:    fetchedAt,
+		FetchedAt:    time.Now().UTC(),
 	}, nil
 }
