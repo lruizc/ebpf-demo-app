@@ -1,0 +1,22 @@
+internal/weather/client.go
+  s_8f5a88b70ca6ca::t_99ab8c21515921 91-93,100
+web/templates/index.html
+  s_8f5a88b70ca6ca::t_2d39827ae21299 22,28
+  s_8f5a88b70ca6ca::t_7df8dea4114d98 14-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "f5a24a3fb18ca60dd1b28af9ee935781ce21cb04",
+  "prompts": {},
+  "sessions": {
+    "s_8f5a88b70ca6ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a94c542-b51f-4121-92ee-c4940986b87f",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "luisruiz_meli <luismiguel.ruiz@mercadolibre.com.co>"
+    }
+  }
+}
