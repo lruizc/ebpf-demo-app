@@ -1,0 +1,21 @@
+manifests/weather-app-deployment.yaml
+  s_8f5a88b70ca6ca::t_296f9337c36d2e 24-45
+cmd/weather-app/main.go
+  s_8f5a88b70ca6ca::t_f7f3ebb118c767 37-40,42,52-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "ea76246de98f9a6d7bdc2d447c415515ff149f85",
+  "prompts": {},
+  "sessions": {
+    "s_8f5a88b70ca6ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a94c542-b51f-4121-92ee-c4940986b87f",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "luisruiz_meli <luismiguel.ruiz@mercadolibre.com.co>"
+    }
+  }
+}
